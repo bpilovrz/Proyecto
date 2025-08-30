@@ -1,0 +1,43 @@
+@startuml
+' Interfaz principal siguiendo el principio de cerrado-abierto
+interface Entrenamiento {
+    +getMarca(): double
+    +getDescripcion(): String
+}
+
+' Clases concretas que implementan la interfaz
+class Tiempo {
+    -segundos: double
+    +Tiempo(segundos: double)
+    +getMarca(): double
+    +getDescripcion(): String
+}
+
+class Peso {
+    -kilogramos: double
+    +Peso(kilogramos: double)
+    +getMarca(): double
+    +getDescripcion(): String
+}
+
+class Puntuacion {
+    -puntos: int
+    +Puntuacion(puntos: int)
+    +getMarca(): double
+    +getDescripcion(): String
+}
+
+class Distancia {
+    -metros: double
+    +Distancia(metros: double)
+    +getMarca(): double
+    +getDescripcion(): String
+}
+
+' Relaciones
+Entrenamiento <|.. Tiempo
+Entrenamiento <|.. Peso
+Entrenamiento <|.. Puntuacion
+Entrenamiento <|.. Distancia
+
+@enduml

@@ -1,0 +1,64 @@
+@startuml
+interface Entrenamiento {
+    +double getMarca()
+    +String getDescripcion()
+}
+
+class Tiempo {
+    -segundos: double
+    +Tiempo(segundos: double)
+    +getMarca(): double
+    +getDescripcion(): String
+}
+Tiempo ..|> Entrenamiento
+
+class Peso {
+    -kg: double
+    +Peso(kg: double)
+    +getMarca(): double
+    +getDescripcion(): String
+}
+Peso ..|> Entrenamiento
+
+class Puntuacion {
+    -puntos: int
+    +Puntuacion(puntos: int)
+    +getMarca(): double
+    +getDescripcion(): String
+}
+Puntuacion ..|> Entrenamiento
+
+class Distancia {
+    -metros: double
+    +Distancia(metros: double)
+    +getMarca(): double
+    +getDescripcion(): String
+}
+Distancia ..|> Entrenamiento
+
+class SesionEntrenamiento {
+    -fecha: Date
+    -entrenamiento: Entrenamiento
+    +SesionEntrenamiento(fecha: Date, entrenamiento: Entrenamiento)
+    +getFecha(): Date
+    +getEntrenamiento(): Entrenamiento
+    +toString(): String
+}
+SesionEntrenamiento --> Entrenamiento
+
+class Atleta {
+    -cui: String
+    -nombre: String
+    -edad: int
+    -disciplina: String
+    -sesiones: SesionEntrenamiento[]
+    -contadorSesiones: int
+    +Atleta()
+    +Atleta(cui: String, nombre: String, edad: int, disciplina: String)
+    +agregarSesion(s: SesionEntrenamiento)
+    +getTotalSesiones(): int
+    +getSesiones(): SesionEntrenamiento[]
+    +toString(): String
+}
+Atleta --> SesionEntrenamiento
+@enduml

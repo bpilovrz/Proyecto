@@ -1,0 +1,13 @@
+@startuml
+class Main {
+    +main(args: String[]): void
+}
+
+Main --> Atleta
+Main --> SesionEntrenamiento
+Main --> Tiempo
+Main --> Peso
+Main --> Puntuacion
+Main --> Distancia
+Main --> Estadistica
+@enduml
