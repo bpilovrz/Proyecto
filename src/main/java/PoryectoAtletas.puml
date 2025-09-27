@@ -1,0 +1,109 @@
+@startuml
+title Diagrama UML - Proyecto Atletas
+
+package "Dominio" {
+    class Atleta {
+        - cui : String
+        - nombre : String
+        - edad : int
+        - disciplina : String
+        - departamento : String
+        - nacionalidad : String
+        - fechaIngreso : LocalDateTime
+        - sesiones : List<SesionEntrenamiento>
+        + agregarSesion(s : SesionEntrenamiento)
+        + getSesiones() : SesionEntrenamiento[]
+        + getTotalSesiones() : int
+    }
+
+    class SesionEntrenamiento {
+        - fecha : LocalDateTime
+        - entrenamiento : Entrenamiento
+        - ubicacion : String
+        - pais : String
+        + getEntrenamiento() : Entrenamiento
+    }
+
+    abstract class Entrenamiento {
+        + getMarca() : double
+    }
+
+    class Tiempo extends Entrenamiento {
+        - segundos : double
+    }
+
+    class Peso extends Entrenamiento {
+        - kilos : double
+    }
+
+    class Distancia extends Entrenamiento {
+        - metros : double
+    }
+
+    class Puntuacion extends Entrenamiento {
+        - puntos : int
+    }
+}
+
+package "Negocio" {
+    interface PagoAtleta {
+        + calcularSueldoBase() : double
+        + calcularBonos(a: Atleta) : double
+        + calcularPagoTotal(a: Atleta) : double
+        + calcularPagoMensual(a: Atleta) : double
+    }
+
+    class Planilla implements PagoAtleta {
+        - SUELDO_BASE : double
+        - BONO_ENTRENAMIENTO : double
+        - BONO_MEJOR_MARCA : double
+        - BONO_EXTRA : double
+        - ultimoPago : double
+        + calcularSueldoBase() : double
+        + calcularBonos(a: Atleta) : double
+        + calcularPagoTotal(a: Atleta) : double
+        + calcularPagoMensual(a: Atleta) : double
+    }
+
+    class Estadistica {
+        + promedio(a: Atleta) : double
+        + mejorMarca(a: Atleta) : double
+        + evolucion(a: Atleta) : List<SesionEntrenamiento>
+    }
+}
+
+package "Persistencia" {
+    class ConexionDB {
+        + getConnection() : Connection
+        + crearTablas(conn : Connection)
+        + guardarAtleta(conn : Connection, a: Atleta)
+        + guardarSesion(conn : Connection, a: Atleta, s: SesionEntrenamiento)
+    }
+
+    class ExportarCSV {
+        + exportarAtletasCSV(lista : List<Atleta>, archivo : String)
+    }
+}
+
+package "Aplicacion" {
+    class Main {
+        + main(args : String[])
+    }
+}
+
+' Relaciones
+Atleta "1" o-- "*" SesionEntrenamiento
+SesionEntrenamiento "1" --> "1" Entrenamiento
+Entrenamiento <|-- Tiempo
+Entrenamiento <|-- Peso
+Entrenamiento <|-- Distancia
+Entrenamiento <|-- Puntuacion
+
+PagoAtleta <|.. Planilla
+Main --> Atleta
+Main --> ConexionDB
+Main --> ExportarCSV
+Main --> Planilla
+Main --> Estadistica
+
+@enduml
