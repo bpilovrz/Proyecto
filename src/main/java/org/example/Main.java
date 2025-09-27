@@ -2,21 +2,26 @@ package org.example;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.sql.Connection;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class Main {
+    private static Scanner sc = new Scanner(System.in);
+
     public static void main(String[] args) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.setDateFormat(new SimpleDateFormat("dd/MM/yyyy"));
-        // Ignorar campos desconocidos en el JSON
+        mapper.registerModule(new JavaTimeModule());
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         Atleta[] atletas = new Atleta[50];
         int contadorAtletas = 0;
-
         File file = new File("atletas.json");
 
         if (file.exists() && file.length() > 0) {
@@ -27,8 +32,10 @@ public class Main {
             }
         }
 
-        Scanner imprimir = new Scanner(System.in);
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        Connection conn = ConexionDB.getConnection();
+        ConexionDB.crearTablas(conn);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         int opcion;
 
         do {
@@ -37,119 +44,143 @@ public class Main {
             System.out.println("2. Registrar Sesión de Entrenamiento");
             System.out.println("3. Mostrar Historial de un Atleta");
             System.out.println("4. Mostrar Estadísticas");
-            System.out.println("5. Salir");
+            System.out.println("5. Calcular Pago Mensual");
+            System.out.println("6. Salir");
+            System.out.println("7. Exportar datos a CSV");
             System.out.print("Opción: ");
-            opcion = imprimir.nextInt();
-            imprimir.nextLine();
+
+            while (!sc.hasNextInt()) {
+                System.out.println("Ingrese un número válido.");
+                sc.nextLine();
+            }
+            opcion = sc.nextInt(); sc.nextLine();
 
             switch (opcion) {
-                case 1:
-                    System.out.print("Cui: ");
-                    String cui = imprimir.nextLine();
-                    System.out.print("Nombre: ");
-                    String nombre = imprimir.nextLine();
-                    System.out.print("Edad: ");
-                    int edad = imprimir.nextInt();
-                    imprimir.nextLine();
-                    System.out.print("Disciplina: ");
-                    String disciplina = imprimir.nextLine();
+                case 1 -> { // Registrar atleta
+                    System.out.print("CUI: "); String cui = sc.nextLine();
+                    System.out.print("Nombre: "); String nombre = sc.nextLine();
+                    System.out.print("Edad: "); int edad = sc.nextInt(); sc.nextLine();
+                    System.out.print("Disciplina: "); String disciplina = sc.nextLine();
+                    System.out.print("Departamento: "); String depto = sc.nextLine();
+                    System.out.print("Nacionalidad: "); String nacionalidad = sc.nextLine();
+                    System.out.print("Fecha ingreso (dd/MM/yyyy): ");
+                    LocalDateTime ingreso = LocalDate.parse(sc.nextLine(), formatter).atStartOfDay();
 
                     if (contadorAtletas < atletas.length) {
-                        atletas[contadorAtletas] = new Atleta(cui, nombre, edad, disciplina);
-                        contadorAtletas++;
-                        System.out.println("Atleta registrado correctamente.");
-                    } else {
-                        System.out.println("No se pueden agregar más atletas.");
+                        Atleta nuevo = new Atleta(cui, nombre, edad, disciplina, depto, nacionalidad, ingreso);
+                        atletas[contadorAtletas++] = nuevo;
+                        try {
+                            ConexionDB.guardarAtleta(conn, nuevo);
+                            System.out.println("Atleta registrado correctamente.");
+                        } catch (Exception e) {
+                            System.out.println("Error: " + e.getMessage());
+                        }
                     }
-                    break;
+                }
 
-                case 2:
-                    if (contadorAtletas == 0) {
-                        System.out.println("No hay atletas registrados.");
-                        break;
-                    }
-                    System.out.println("Seleccione atleta:");
-                    for (int i = 0; i < contadorAtletas; i++) {
-                        System.out.println(i + ". " + atletas[i]);
-                    }
-                    int idx = imprimir.nextInt();
-                    imprimir.nextLine();
-                    Atleta seleccionado = atletas[idx];
+                case 2 -> { // Registrar sesión
+                    if (contadorAtletas == 0) { System.out.println("No hay atletas registrados."); break; }
+                    mostrarAtletas(atletas, contadorAtletas);
+                    int index = sc.nextInt(); sc.nextLine();
+                    Atleta seleccionado = atletas[index];
 
                     System.out.print("Fecha (dd/MM/yyyy): ");
-                    String f = imprimir.nextLine();
-                    Date fecha = sdf.parse(f);
+                    LocalDateTime fecha = LocalDate.parse(sc.nextLine(), formatter).atStartOfDay();
 
-                    System.out.println("Tipo de entrenamiento: 1) Tiempo  2) Peso  3) Puntuación  4) Distancia");
-                    int tipo = imprimir.nextInt();
-                    imprimir.nextLine();
-
+                    System.out.println("Tipo de entrenamiento: 1) Tiempo 2) Peso 3) Puntuación 4) Distancia");
+                    int tipo = sc.nextInt(); sc.nextLine();
                     Entrenamiento ent = null;
                     switch (tipo) {
-                        case 1:
-                            System.out.print("Tiempo (segundos): ");
-                            ent = new Tiempo(imprimir.nextDouble());
-                            break;
-                        case 2:
-                            System.out.print("Peso (kg): ");
-                            ent = new Peso(imprimir.nextDouble());
-                            break;
-                        case 3:
-                            System.out.print("Puntuación: ");
-                            ent = new Puntuacion(imprimir.nextInt());
-                            break;
-                        case 4:
-                            System.out.print("Distancia (m): ");
-                            ent = new Distancia(imprimir.nextDouble());
-                            break;
+                        case 1 -> { System.out.print("Tiempo (segundos): "); ent = new Tiempo(sc.nextDouble()); }
+                        case 2 -> { System.out.print("Peso (kg): "); ent = new Peso(sc.nextDouble()); }
+                        case 3 -> { System.out.print("Puntuación: "); ent = new Puntuacion(sc.nextInt()); }
+                        case 4 -> { System.out.print("Distancia (m): "); ent = new Distancia(sc.nextDouble()); }
                     }
-                    imprimir.nextLine();
-                    seleccionado.agregarSesion(new SesionEntrenamiento(fecha, ent));
-                    break;
+                    sc.nextLine();
 
-                case 3:
+                    System.out.print("¿Entrenamiento internacional? (s/n): ");
+                    String resp = sc.nextLine();
+                    String ubicacion = "Nacional";
+                    String pais = null;
+                    if (resp.equalsIgnoreCase("s")) {
+                        System.out.print("Ingrese país: ");
+                        ubicacion = "Internacional";
+                        pais = sc.nextLine();
+                    }
+
+                    SesionEntrenamiento sesion = new SesionEntrenamiento(fecha, ent, ubicacion, pais);
+                    seleccionado.agregarSesion(sesion);
+                    ConexionDB.guardarSesion(conn, seleccionado, sesion);
+                }
+
+                case 3 -> { // Mostrar historial
                     if (contadorAtletas == 0) break;
-                    System.out.println("Seleccione atleta:");
-                    for (int i = 0; i < contadorAtletas; i++) {
-                        System.out.println(i + ". " + atletas[i]);
-                    }
-                    int idHist = imprimir.nextInt();
-                    imprimir.nextLine();
-                    Atleta aHist = atletas[idHist];
+                    mostrarAtletas(atletas, contadorAtletas);
+                    int index = sc.nextInt(); sc.nextLine();
+                    Atleta aHist = atletas[index];
 
-                    System.out.println("\nHistorial de " + aHist);
-                    for (int j = 0; j < aHist.getTotalSesiones(); j++) {
-                        System.out.println("  " + aHist.getSesiones()[j]);
+                    System.out.println("\nHistorial de " + aHist.getNombre());
+                    for (SesionEntrenamiento s : aHist.getSesiones()) {
+                        System.out.println("  " + s);
                     }
-                    break;
+                }
 
-                case 4:
+                case 4 -> { // Estadísticas
                     if (contadorAtletas == 0) break;
-                    System.out.println("Seleccione atleta:");
-                    for (int i = 0; i < contadorAtletas; i++) {
-                        System.out.println(i + ". " + atletas[i]);
-                    }
-                    int idEst = imprimir.nextInt();
-                    imprimir.nextLine();
-                    Atleta aEst = atletas[idEst];
+                    mostrarAtletas(atletas, contadorAtletas);
+                    int index = sc.nextInt(); sc.nextLine();
+                    Atleta aEst = atletas[index];
 
-                    System.out.println("\nEstadísticas de " + aEst);
+                    System.out.println("\nEstadísticas de " + aEst.getNombre());
                     System.out.println("Promedio: " + Estadistica.promedio(aEst));
                     System.out.println("Mejor marca: " + Estadistica.mejorMarca(aEst));
-                    Estadistica.mostrarEvolucion(aEst);
-                    break;
-            }
-        } while (opcion != 5);
+                    System.out.println("Evolución:");
+                    for (SesionEntrenamiento s : Estadistica.evolucion(aEst)) {
+                        System.out.println("  " + s);
+                    }
+                }
 
-        Atleta[] atletasValidos = new Atleta[contadorAtletas];
-        for (int i = 0; i < contadorAtletas; i++) {
-            atletasValidos[i] = atletas[i];
-        }
+                case 5 -> { // Pago mensual
+                    if (contadorAtletas == 0) break;
+                    mostrarAtletas(atletas, contadorAtletas);
+                    int index = sc.nextInt(); sc.nextLine();
+                    Atleta aPago = atletas[index];
+                    Planilla planilla = new Planilla();
+                    double pago = planilla.calcularPagoTotal(aPago);
+                    System.out.println("Pago mensual de " + aPago.getNombre() + ": Q" + pago);
+                }
+                case 7  -> {
+                    ExportarCSV.exportarAtletasCSV(conn, "atletas.csv");
+                    ExportarCSV.exportarEntrenamientosCSV(conn, "entrenamientos.csv");
+                }
+
+                case 6 -> System.out.println("Saliendo...");
+
+                default -> System.out.println("Opción inválida.");
+            }
+        } while (opcion != 6);
+
+        // Guardar datos en JSON
+        Atleta[] atletasValidos = Arrays.copyOf(atletas, contadorAtletas);
         mapper.writeValue(file, atletasValidos);
         System.out.println("Datos guardados en: " + file.getAbsolutePath());
 
-        imprimir.close();
+        sc.close();
+        conn.close();
+    }
+
+    private static void mostrarAtletas(Atleta[] atletas, int contador) {
+        System.out.println("Seleccione atleta:");
+        for (int i = 0; i < contador; i++) {
+            System.out.println(i + ". " + atletas[i].getNombre());
+        }
     }
 }
+
+
+
+
+
+
 
 

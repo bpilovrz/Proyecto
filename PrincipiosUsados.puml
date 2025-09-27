@@ -1,0 +1,69 @@
+@startuml
+title UML - SRP, OCP, LSP y Composición sobre Herencia
+
+' ======== PRINCIPIO OCP Y LSP =========
+'OCP open/closed priciple
+'SRP  sigle responsability principle
+'liskov substitution principle
+abstract class Entrenamiento {
+    +valor: double
+    +toString(): String
+}
+
+class Tiempo {
+    +tiempo: double
+}
+class Peso {
+    +peso: double
+}
+class Puntuacion {
+    +puntos: int
+}
+class Distancia {
+    +distancia: double
+}
+
+note bottom of Tiempo
+SRP: Cada clase tiene su respondabilidad clara
+end note
+
+Entrenamiento <|-- Tiempo
+Entrenamiento <|-- Peso
+Entrenamiento <|-- Puntuacion
+Entrenamiento <|-- Distancia
+
+note right of Entrenamiento
+  OCP: La clase base Entrenamiento
+  permite extender con nuevos tipos
+  sin modificar las existentes.
+  LSP: Todas las subclases pueden
+  sustituir a Entrenamiento.
+end note
+
+' ======== COMPOSICIÓN SOBRE HERENCIA =========
+class Atleta {
+    -cui: String
+    -nombre: String
+    -edad: int
+    -disciplina: String
+    -sesiones: List<SesionEntrenamiento>
+    +agregarSesion(sesion: SesionEntrenamiento)
+}
+
+class SesionEntrenamiento {
+    -fecha: LocalDateTime
+    -entrenamiento: Entrenamiento
+    -ubicacion: String
+    -pais: String
+}
+
+Atleta "1" *-- "0..*" SesionEntrenamiento : contiene >
+
+note bottom of Atleta
+  Composición: un Atleta tiene
+  muchas sesiones de entrenamiento.
+end note
+
+SesionEntrenamiento --> Entrenamiento : usa
+
+@enduml

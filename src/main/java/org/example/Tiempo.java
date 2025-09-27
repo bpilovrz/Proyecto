@@ -1,23 +1,25 @@
 package org.example;
 
+
 public class Tiempo implements Entrenamiento {
-    private double segundos;
+    private double marca; // mejor usar "marca" para ser consistente con getMarca()
 
     public Tiempo() {}
+
     public Tiempo(double segundos) {
-        this.segundos = segundos;
+        this.marca = segundos;
     }
 
     @Override
     public double getMarca() {
-        return segundos;
+        return marca;
     }
 
     @Override
     public String getDescripcion() {
-        return segundos + " seg";
+        return marca + " seg";
     }
 
-    public double getSegundos() { return segundos; }
-    public void setSegundos(double segundos) { this.segundos = segundos; }
+    public double getSegundos() { return marca; }
+    public void setSegundos(double segundos) { this.marca = segundos; }
 }

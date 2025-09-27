@@ -1,24 +1,25 @@
 package org.example;
 
 public class Puntuacion implements Entrenamiento {
-    private int puntos;
+    private double marca; // puntos como double para getMarca()
 
     public Puntuacion() {}
 
     public Puntuacion(int puntos) {
-        this.puntos = puntos;
+        this.marca = puntos;
     }
 
     @Override
     public double getMarca() {
-        return puntos;
+        return marca;
     }
 
     @Override
     public String getDescripcion() {
-        return puntos + " pts";
+        return (int)marca + " pts"; // mostrar como entero
     }
 
-    public int getPuntos() { return puntos; }
-    public void setPuntos(int puntos) { this.puntos = puntos; }
+    public int getPuntos() { return (int)marca; }
+    public void setPuntos(int puntos) { this.marca = puntos; }
 }
+

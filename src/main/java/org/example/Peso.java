@@ -1,24 +1,25 @@
 package org.example;
 
 public class Peso implements Entrenamiento {
-    private double kilogramos;
+    private double marca; // en kg
 
     public Peso() {}
 
     public Peso(double kilogramos) {
-        this.kilogramos = kilogramos;
+        this.marca = kilogramos;
     }
 
     @Override
     public double getMarca() {
-        return kilogramos;
+        return marca;
     }
 
     @Override
     public String getDescripcion() {
-        return kilogramos + " kg";
+        return marca + " kg";
     }
 
-    public double getKilogramos() { return kilogramos; }
-    public void setKilogramos(double kilogramos) { this.kilogramos = kilogramos; }
+    public double getKilogramos() { return marca; }
+    public void setKilogramos(double kilogramos) { this.marca = kilogramos; }
 }
+
